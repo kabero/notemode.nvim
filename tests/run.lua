@@ -137,6 +137,22 @@ test("note mode tab handling", function()
   eq(#vim.api.nvim_list_tabpages(), 2)
 end)
 
+test("leaving the last tab keeps nvim open", function()
+  vim.cmd("Note quit")
+  vim.cmd("enew")
+  local cwd = vim.fn.getcwd()
+  vim.cmd("Note")
+  eq(#vim.api.nvim_list_tabpages(), 1)
+  eq(vim.fn.getcwd(), dir)
+  -- -l で走るテストは VimEnter 前なので、起動後に <leader>mm で入った状態にする
+  vim.t.notemode_quit = false
+  vim.cmd("Note quit")
+  eq(#vim.api.nvim_list_tabpages(), 1)
+  eq(vim.t.notemode, nil)
+  eq(vim.api.nvim_buf_get_name(0), "")
+  eq(vim.fn.getcwd(), cwd)
+end)
+
 print(("%d passed, %d failed"):format(passed, failed))
 vim.fn.delete(dir, "rf")
 os.exit(failed == 0 and 0 or 1)

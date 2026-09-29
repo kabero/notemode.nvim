@@ -43,6 +43,9 @@ function M.enter(fn)
       vim.cmd("tabnew")
     end
     vim.t.notemode = true
+    -- 起動途中 (`nvim +Note`) で入ったときだけ、抜けるときに nvim ごと閉じる
+    vim.t.notemode_quit = vim.v.vim_did_enter == 0
+    vim.t.notemode_cwd = vim.fn.getcwd()
     local dir = config.dir()
     vim.fn.mkdir(dir, "p")
     vim.cmd.tcd(vim.fn.fnameescape(dir))
@@ -61,11 +64,19 @@ function M.leave()
     return
   end
   require("notemode.buffer").save_all()
-  if #vim.api.nvim_list_tabpages() == 1 then
+  vim.api.nvim_set_current_tabpage(tp)
+  if #vim.api.nvim_list_tabpages() > 1 then
+    vim.cmd("tabclose")
+  elseif vim.t.notemode_quit then
     vim.cmd("confirm qall")
   else
-    vim.api.nvim_set_current_tabpage(tp)
-    vim.cmd("tabclose")
+    -- 最後のタブなら nvim は閉じず、空のバッファに戻す
+    vim.cmd("silent only")
+    vim.cmd("enew")
+    vim.cmd.tcd(vim.fn.fnameescape(vim.t.notemode_cwd))
+    vim.t.notemode = nil
+    vim.t.notemode_quit = nil
+    vim.t.notemode_cwd = nil
   end
 end
 
