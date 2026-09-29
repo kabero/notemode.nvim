@@ -1,0 +1,180 @@
+*notemode.txt*  Markdown のノートを専用タブで書くためのプラグイン
+
+==============================================================================
+目次                                                        *notemode-contents*
+
+  1. 概要 ..................................... |notemode-intro|
+  2. コマンド ................................. |notemode-commands|
+  3. リンク ................................... |notemode-links|
+  4. タグとタスク ............................. |notemode-tags|
+  5. キーマップ ............................... |notemode-mappings|
+  6. 設定 ..................................... |notemode-config|
+  7. Lua API .................................. |notemode-api|
+  8. ハイライト ............................... |notemode-highlights|
+
+==============================================================================
+1. 概要                                                        *notemode-intro*
+
+|notemode-config| の `dir` (既定 `~/notes`) 配下の Markdown をノートとして扱う。
+
+`:Note` でノートモード用のタブを開き、そのタブの作業ディレクトリをノートの
+ディレクトリに移す。ノートモードのタブは 1 つだけで、すでにあればそこへ移る。
+何も開いていない空のタブ (`nvim +Note` など) ではそのタブをそのまま使う。
+
+ノートのディレクトリ配下の `.md` を開くと、ノートモードの外でも自動的に
+ノート用バッファになる。ノート用バッファでは:
+  - `[[link]]` と `#tag` をハイライトする
+  - |notemode-mappings| のキーマップを張る
+  - 'wrap' と 'linebreak' を有効にする
+  - `autosave` が有効なら編集のたびに保存する
+  - 保存時に親ディレクトリがなければ作る
+
+==============================================================================
+2. コマンド                                                 *notemode-commands*
+
+                                                                       *:Note*
+:Note [subcommand] [args]
+    サブコマンドを省略すると `open` と同じ。サブコマンドとタグ名は補完できる。
+
+:Note open                                                        *:Note-open*
+    ノートモードに入り、`start` で指定したページを開く。
+
+:Note quit                                                        *:Note-quit*
+:Note q
+    ノートをすべて保存してノートモードのタブを閉じる。最後のタブなら
+    `:confirm qall` する。
+
+:Note toggle                                                    *:Note-toggle*
+    ノートモードのタブにいれば閉じ、いなければ入る。
+
+:Note index                                                      *:Note-index*
+:Note inbox                                                      *:Note-inbox*
+    `index` / `inbox` のノートを開く。
+
+:Note daily [offset]                                             *:Note-daily*
+:Note today [offset]
+    `daily_dir` にある日付のノートを開く。[offset] は日数で、`-1` なら昨日。
+
+:Note new [title]                                                  *:Note-new*
+    ノートを新規作成する。[title] を省略すると入力を求める。
+
+:Note find                                                        *:Note-find*
+    ピッカーでノートを探す。ピッカーは `picker` で選ぶ。
+
+:Note grep [pattern]                                              *:Note-grep*
+    全ノートを Vim の正規表現で検索し、結果を quickfix に出す。
+    [pattern] を省略すると入力を求める。
+
+:Note tags [tag]                                                  *:Note-tags*
+    タグを省略するとタグの一覧、指定するとそのタグの出現箇所を出す。
+
+:Note backlinks                                              *:Note-backlinks*
+    カレントのノートへリンクしているノートを quickfix に出す。
+
+:Note capture [text]                                           *:Note-capture*
+    [text] を inbox に追記する。省略するとフローティングウィンドウが開き、
+    書いた内容を inbox に追記する。
+
+==============================================================================
+3. リンク                                                      *notemode-links*
+
+    [[name]]            ノート name へのリンク
+    [[name#heading]]    ノート name の見出し heading へのリンク
+    [[name|alias]]      表示名つきのリンク
+
+name はファイル名 (拡張子なし) か、ノートのディレクトリからの相対パス。
+完全一致がなければ大文字小文字を区別せずに探し、同名があれば浅い階層の
+ものを優先する。
+存在しないノートへのリンクは `NotemodeLinkMissing` で表示され、たどると
+テンプレートを流し込んだバッファが開く (保存するまでファイルは作られない)。
+
+`<CR>` は `[[link]]` のほかに `[text](path)` 形式のリンクと URL もたどる。
+URL は |vim.ui.open()| で開く。
+
+==============================================================================
+4. タグとタスク                                                 *notemode-tags*
+
+行頭・空白・`(` の直後の `#tag` をタグとして扱う。数字だけのもの (`#1`)
+とコードブロックの中は除く。全角の句読点・括弧でタグは終わる。
+
+                                                                *notemode-tasks*
+タスクの切り替え (`toggle_task`) は行を次のように変える:
+    "- [ ] a"  ->  "- [x] a"  ->  "- [ ] a"
+    "- a"      ->  "- [ ] a"
+    "a"        ->  "- [ ] a"
+完了したタスクは `NotemodeTaskDone` で表示される。
+
+==============================================================================
+5. キーマップ                                               *notemode-mappings*
+
+ノート用バッファにだけ張られる。キーは `mappings` で変えられ、個別に
+`false` を入れると無効、`mappings = false` で全部無効になる。
+
+    名前          既定                動作 ~
+    follow        <CR>                リンクをたどる (ビジュアル: 選択をリンクに)
+    back          <BS>                戻る (<C-o>)
+    next_link     <Tab>               次のリンクへ
+    prev_link     <S-Tab>             前のリンクへ
+    toggle_task   <C-Space>           タスクの切り替え (カウント・ビジュアル可)
+    complete      [[                  挿入モードでノート名を補完
+    backlinks     <LocalLeader>b      |:Note-backlinks|
+    find          <LocalLeader>f      |:Note-find|
+    new           <LocalLeader>n      |:Note-new|
+    daily         <LocalLeader>d      |:Note-daily|
+    grep          <LocalLeader>g      |:Note-grep|
+    tags          <LocalLeader>t      |:Note-tags|
+    capture       <LocalLeader>c      |:Note-capture|
+
+==============================================================================
+6. 設定                                                       *notemode-config*
+
+`require("notemode").setup(opts)` に既定値との差分を渡す。既定値: >lua
+
+    require("notemode").setup({
+      dir = "~/notes",
+      -- :Note で最初に開くもの: "index" | "daily" | "inbox"
+      start = "index",
+      index = "index.md",
+      inbox = "inbox.md",
+      daily_dir = "daily",
+      daily_format = "%Y-%m-%d",
+      autosave = true,
+      -- "auto" | "telescope" | "fzf-lua" | "snacks" | "select"
+      picker = "auto",
+      -- {{title}} {{date}} {{time}} が置換される
+      templates = {
+        note = "# {{title}}\n\n",
+        daily = "# {{title}}\n\n## Todo\n\n- [ ] \n\n## Memo\n\n",
+        index = "# Index\n\n",
+        inbox = "# Inbox\n\n",
+      },
+      capture_prefix = "- ",
+      mappings = { ... }, -- |notemode-mappings|
+    })
+<
+==============================================================================
+7. Lua API                                                       *notemode-api*
+
+require("notemode").setup({opts})                            *notemode.setup()*
+    |notemode-config| を参照。
+
+require("notemode").enter([{fn}])                            *notemode.enter()*
+    ノートモードに入る。{fn} を渡すと入ったあとに実行し、渡さなければ
+    `start` のページを開く。
+
+require("notemode").leave()                                  *notemode.leave()*
+require("notemode").toggle()                                *notemode.toggle()*
+    |:Note-quit| / |:Note-toggle| と同じ。
+
+require("notemode").statusline()                        *notemode.statusline()*
+    ノートモードのタブにいれば "NOTE"、そうでなければ "" を返す。
+
+==============================================================================
+8. ハイライト                                             *notemode-highlights*
+
+    NotemodeLink          存在するノートへのリンク (既定: Underlined)
+    NotemodeLinkMissing   存在しないノートへのリンク (既定: DiagnosticUnnecessary)
+    NotemodeTag           #tag (既定: Special)
+    NotemodeTaskDone      完了したタスク (既定: Comment)
+
+ vim:tw=78:ts=8:ft=help:norl:
