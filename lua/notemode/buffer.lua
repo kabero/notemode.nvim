@@ -3,49 +3,8 @@ local notes = require("notemode.notes")
 
 local M = {}
 
-local ns = vim.api.nvim_create_namespace("notemode")
 local group = vim.api.nvim_create_augroup("notemode_buffer", { clear = true })
 local attached = {}
-
---- [[link]] と完了タスクをハイライトする (treesitter と共存できるよう decoration provider で描画)
-vim.api.nvim_set_decoration_provider(ns, {
-  on_win = function(_, _, buf)
-    return attached[buf] == true
-  end,
-  on_line = function(_, _, buf, row)
-    local line = vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
-    if not line or line == "" then
-      return
-    end
-    for s, inner, e in line:gmatch(require("notemode.link").pattern) do
-      local name = require("notemode.link").parse(inner)
-      local hl = notes.resolve(name) and "NotemodeLink" or "NotemodeLinkMissing"
-      vim.api.nvim_buf_set_extmark(buf, ns, row, s - 1, { end_col = e - 1, hl_group = hl, ephemeral = true })
-    end
-    local done = line:match("^%s*[-*+]%s+%[[xX]%]()")
-    if done then
-      vim.api.nvim_buf_set_extmark(buf, ns, row, done - 1, { end_col = #line, hl_group = "NotemodeTaskDone", ephemeral = true })
-    end
-  end,
-})
-
-local function map(buf, modes, name, rhs, desc)
-  local lhs = config.options.mappings[name]
-  if lhs then
-    -- nowait: グローバルに <leader>fb などがあっても <leader>f を即座に発火させる
-    vim.keymap.set(modes, lhs, rhs, { buffer = buf, silent = true, nowait = true, desc = "notemode: " .. desc })
-  end
-end
-
-local function cmd(sub)
-  return function()
-    vim.cmd("Note " .. sub)
-  end
-end
-
-function M.is_attached(buf)
-  return attached[buf] == true
-end
 
 function M.maybe_attach(buf)
   if notes.is_note(vim.api.nvim_buf_get_name(buf)) then
@@ -56,36 +15,20 @@ end
 function M.attach(buf)
   attached[buf] = true
   vim.b[buf].notemode = true
-  vim.bo[buf].omnifunc = "v:lua.require'notemode.link'.omnifunc"
   for _, win in ipairs(vim.fn.win_findbuf(buf)) do
     vim.wo[win][0].wrap = true
     vim.wo[win][0].linebreak = true
   end
 
-  local link = require("notemode.link")
-  map(buf, "n", "follow", link.follow, "follow link")
-  map(buf, "x", "follow", link.link_selection, "make link from selection")
-  map(buf, "n", "goto_file", link.goto_file, "go to note on this line")
-  map(buf, "n", "back", "<C-o>", "go back")
-  map(buf, "n", "next_link", function()
-    link.jump(false)
-  end, "next link")
-  map(buf, "n", "prev_link", function()
-    link.jump(true)
-  end, "previous link")
-  map(buf, "n", "toggle_task", function()
-    local l = vim.api.nvim_win_get_cursor(0)[1]
-    require("notemode.task").toggle(l, l + vim.v.count1 - 1)
-  end, "toggle task")
-  map(buf, "x", "toggle_task", function()
-    local a, b = vim.fn.line("v"), vim.fn.line(".")
-    vim.cmd.normal({ args = { vim.keycode("<Esc>") }, bang = true })
-    require("notemode.task").toggle(math.min(a, b), math.max(a, b))
-  end, "toggle tasks")
-  map(buf, "i", "complete", "[[<C-x><C-o>", "complete link")
-  map(buf, "n", "new", cmd("new"), "new note")
-  map(buf, "n", "daily", cmd("daily"), "daily note")
-  map(buf, "n", "capture", cmd("capture"), "capture to inbox")
+  local lhs = config.options.mappings.goto_file
+  if lhs then
+    vim.keymap.set("n", lhs, require("notemode.gf").goto_file, {
+      buffer = buf,
+      silent = true,
+      nowait = true,
+      desc = "notemode: go to note on this line",
+    })
+  end
 
   vim.api.nvim_clear_autocmds({ group = group, buffer = buf })
   vim.api.nvim_create_autocmd("BufWritePre", {

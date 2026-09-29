@@ -10,8 +10,8 @@ function M.statusline()
   return require("notemode.mode").active() and "NOTE" or ""
 end
 
-M.enter = function(...)
-  return require("notemode.mode").enter(...)
+M.enter = function()
+  return require("notemode.mode").enter()
 end
 M.leave = function()
   return require("notemode.mode").leave()

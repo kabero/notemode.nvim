@@ -33,8 +33,8 @@ local function blank_tab()
     and vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] == ""
 end
 
---- ノートモードに入る。fn を渡すとモードに入ったあとで実行する (なければ start ページを開く)
-function M.enter(fn)
+--- ノートモードに入り、index を開く (すでにあればそのタブへ移る)
+function M.enter()
   local tp = M.tab()
   if tp then
     vim.api.nvim_set_current_tabpage(tp)
@@ -49,12 +49,7 @@ function M.enter(fn)
     local dir = config.dir()
     vim.fn.mkdir(dir, "p")
     vim.cmd.tcd(vim.fn.fnameescape(dir))
-    if not fn then
-      notes.start()
-    end
-  end
-  if fn then
-    fn()
+    notes.index()
   end
 end
 

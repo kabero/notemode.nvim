@@ -3,35 +3,18 @@ local M = {}
 M.defaults = {
   -- ノートを置くディレクトリ
   dir = "~/notes",
-  -- :Note で最初に開くもの: "index" | "daily" | "inbox"
-  start = "index",
+  -- :Note で開くノート
   index = "index.md",
-  inbox = "inbox.md",
-  daily_dir = "daily",
-  daily_format = "%Y-%m-%d",
   -- 編集するたびに自動保存する
   autosave = true,
-  -- テンプレート中の {{title}} {{date}} {{time}} が置換される
+  -- 新しく開くノートの中身。{{title}} {{date}} {{time}} が置換される
   templates = {
     note = "# {{title}}\n\n",
-    daily = "# {{title}}\n\n## Todo\n\n- [ ] \n\n## Memo\n\n",
     index = "# Index\n\n",
-    inbox = "# Inbox\n\n",
   },
-  -- キャプチャした各行の先頭につける文字列
-  capture_prefix = "- ",
   -- ノートバッファ内のキーマップ (false で無効化)
   mappings = {
-    follow = "<CR>",
     goto_file = "gf",
-    back = "<BS>",
-    next_link = "<Tab>",
-    prev_link = "<S-Tab>",
-    toggle_task = "<C-Space>",
-    complete = "[[",
-    new = "<LocalLeader>n",
-    daily = "<LocalLeader>d",
-    capture = "<LocalLeader>c",
   },
 }
 

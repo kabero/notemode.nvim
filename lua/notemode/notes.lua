@@ -65,7 +65,7 @@ function M.list()
     end
     return a.rel < b.rel
   end)
-  -- 浅い階層を優先してリンク解決できるよう、浅い順に登録
+  -- 同名のノートは浅い階層を優先して解決できるよう、浅い順に登録
   local by_depth = vim.list_slice(out)
   table.sort(by_depth, function(a, b)
     local _, da = a.rel:gsub("/", "")
@@ -87,7 +87,7 @@ function M.add(path)
   remember(config.real(path))
 end
 
---- リンク名からノートのパスを探す。見つからなければ nil
+--- ノート名からパスを探す。見つからなければ nil
 function M.resolve(name)
   name = vim.trim(name):gsub("%.md$", "")
   if name == "" then
@@ -105,7 +105,7 @@ local function sanitize(name)
   return name
 end
 
---- リンク名に対応するパス (存在しなければ新規作成先)
+--- ノート名に対応するパス (存在しなければ新規作成先)
 function M.target(name)
   return M.resolve(name) or (config.dir() .. "/" .. sanitize(name) .. ".md")
 end
@@ -142,34 +142,8 @@ function M.open(path, kind, title)
   return buf
 end
 
-function M.new(title)
-  return M.open(M.target(title), "note", vim.trim(title))
-end
-
-function M.daily(offset)
-  local t = os.date("*t")
-  local time = os.time({ year = t.year, month = t.month, day = t.day + (offset or 0), hour = 12 })
-  local title = os.date(config.options.daily_format, time)
-  local path = config.dir() .. "/" .. config.options.daily_dir .. "/" .. title .. ".md"
-  return M.open(path, "daily", title)
-end
-
 function M.index()
   return M.open(config.dir() .. "/" .. config.options.index, "index")
-end
-
-function M.inbox()
-  return M.open(config.dir() .. "/" .. config.options.inbox, "inbox")
-end
-
-function M.start()
-  local start = config.options.start
-  if start == "daily" then
-    return M.daily(0)
-  elseif start == "inbox" then
-    return M.inbox()
-  end
-  return M.index()
 end
 
 return M
