@@ -25,6 +25,7 @@ M.defaults = {
   -- ノートバッファ内のキーマップ (false で無効化)
   mappings = {
     follow = "<CR>",
+    goto_file = "gf",
     back = "<BS>",
     next_link = "<Tab>",
     prev_link = "<S-Tab>",

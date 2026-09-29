@@ -76,6 +76,32 @@ test("follow link creates note, autosave writes", function()
   eq(vim.api.nvim_win_get_cursor(0)[1], 3)
 end)
 
+test("gf opens the note named on the line", function()
+  local link = require("notemode.link")
+  eq(link.line_name("- [ ] Project Plan"), "Project Plan")
+  eq(link.line_name("  1. foo.md "), "foo.md")
+  local from = dir .. "/gf.md"
+  local function gf_on(text, col)
+    vim.fn.writefile({ text }, from)
+    vim.cmd("edit! " .. vim.fn.fnameescape(from))
+    vim.api.nvim_win_set_cursor(0, { 1, col or 0 })
+    link.goto_file()
+    return vim.fn.expand("%:p")
+  end
+  -- 空白を含む名前も、拡張子なしでも、大文字小文字違いでも行全体で引ける
+  eq(gf_on("- project plan", 4), dir .. "/Project Plan.md")
+  eq(gf_on("Project Plan.md"), dir .. "/Project Plan.md")
+  -- 行全体では引けなくても、カーソル下のファイル名で引ける
+  eq(gf_on("see ./index.md here", 5), dir .. "/index.md")
+  -- 見つからなければ行の名前で新しいノート (保存するまでファイルは作らない)
+  eq(gf_on("* Brand New"), dir .. "/Brand New.md")
+  eq(lines(), { "# Brand New", "" })
+  eq(vim.uv.fs_stat(dir .. "/Brand New.md"), nil)
+  vim.cmd("bwipeout! " .. vim.fn.fnameescape(from))
+  vim.fn.delete(from)
+  require("notemode.notes").invalidate()
+end)
+
 test("resolve is case-insensitive and finds subdirs", function()
   local notes = require("notemode.notes")
   vim.fn.mkdir(dir .. "/sub", "p")
