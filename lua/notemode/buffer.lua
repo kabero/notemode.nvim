@@ -39,7 +39,8 @@ vim.api.nvim_set_decoration_provider(ns, {
 local function map(buf, modes, name, rhs, desc)
   local lhs = config.options.mappings[name]
   if lhs then
-    vim.keymap.set(modes, lhs, rhs, { buffer = buf, silent = true, desc = "notemode: " .. desc })
+    -- nowait: グローバルに <leader>fb などがあっても <leader>f を即座に発火させる
+    vim.keymap.set(modes, lhs, rhs, { buffer = buf, silent = true, nowait = true, desc = "notemode: " .. desc })
   end
 end
 
