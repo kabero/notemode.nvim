@@ -24,7 +24,25 @@ local backends = {
     require("fzf-lua").files({ cwd = dir, prompt = "Notes> " })
   end,
   snacks = function(dir)
-    require("snacks").picker.files({ cwd = dir, title = "Notes" })
+    require("snacks").picker.files({
+      cwd = dir,
+      title = "Notes",
+      ft = "md",
+      actions = {
+        notemode_delete = function(picker)
+          local paths = vim.tbl_map(require("snacks").picker.util.path, picker:selected({ fallback = true }))
+          picker.preview:reset()
+          if notes.delete(paths) then
+            picker:find()
+          end
+        end,
+      },
+      -- snacks の削除系アクション (bufdelete など) と同じキー
+      win = {
+        input = { keys = { ["<c-x>"] = { "notemode_delete", mode = { "n", "i" }, desc = "Delete note" } } },
+        list = { keys = { ["dd"] = { "notemode_delete", desc = "Delete note" } } },
+      },
+    })
   end,
 }
 

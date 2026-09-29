@@ -94,6 +94,35 @@ test("backlinks", function()
   vim.cmd("cclose")
 end)
 
+test("delete asks, then removes the file and its buffer", function()
+  local notes = require("notemode.notes")
+  local path = dir .. "/Doomed.md"
+  vim.fn.writefile({ "# Doomed" }, path)
+  vim.fn.writefile({ "[[Doomed]]" }, dir .. "/Keeper.md")
+  vim.cmd("edit " .. vim.fn.fnameescape(path))
+  local buf = vim.api.nvim_get_current_buf()
+  local confirm = vim.fn.confirm
+  local asked
+  vim.fn.confirm = function(msg)
+    asked = msg
+    return 2
+  end
+  eq(notes.delete({ path }), false)
+  eq(vim.uv.fs_stat(path) ~= nil, true)
+  vim.fn.confirm = function()
+    return 1
+  end
+  local ok, deleted = pcall(notes.delete, { path })
+  vim.fn.confirm = confirm
+  assert(ok, deleted)
+  eq(deleted, true)
+  eq(asked:find("1 箇所からリンク", 1, true) ~= nil, true)
+  eq(vim.uv.fs_stat(path), nil)
+  eq(vim.api.nvim_buf_is_valid(buf), false)
+  eq(notes.resolve("Doomed"), nil)
+  vim.fn.delete(dir .. "/Keeper.md")
+end)
+
 test("grep and tags", function()
   require("notemode.search").grep("ship")
   eq(#vim.fn.getqflist(), 1)

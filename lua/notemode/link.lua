@@ -85,19 +85,13 @@ function M.jump(backward)
   end
 end
 
---- 現在のノートへのリンクを持つ行
-function M.backlinks()
-  local path = vim.api.nvim_buf_get_name(0)
-  if not notes.is_note(path) then
-    vim.notify("notemode: ノートではありません", vim.log.levels.WARN)
-    return
-  end
+--- path へのリンクを持つ行 (quickfix の item 形式)
+function M.backlink_items(path)
   local keys = {
     [vim.fs.basename(path):gsub("%.md$", ""):lower()] = true,
     [notes.rel(path):gsub("%.md$", ""):lower()] = true,
   }
-  local search = require("notemode.search")
-  local items = search.scan(function(line)
+  return require("notemode.search").scan(function(line)
     local cols
     for s, inner in line:gmatch(M.pattern) do
       if keys[M.parse(inner):lower()] then
@@ -107,7 +101,16 @@ function M.backlinks()
     end
     return cols
   end, { exclude = require("notemode.config").real(path) })
-  search.to_qf(items, "Backlinks: " .. notes.rel(path))
+end
+
+--- 現在のノートへのリンクを持つ行
+function M.backlinks()
+  local path = vim.api.nvim_buf_get_name(0)
+  if not notes.is_note(path) then
+    vim.notify("notemode: ノートではありません", vim.log.levels.WARN)
+    return
+  end
+  require("notemode.search").to_qf(M.backlink_items(path), "Backlinks: " .. notes.rel(path))
 end
 
 function M.omnifunc(findstart, base)

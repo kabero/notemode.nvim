@@ -61,6 +61,10 @@
 
 :Note find                                                        *:Note-find*
     ピッカーでノートを探す。ピッカーは `picker` で選ぶ。
+                                                         *notemode-delete*
+    snacks のピッカーでは `<C-x>` (リストでは `dd`) で選択中のノートを
+    削除できる。ほかのノートからのリンク数を示して確認したうえで、ファイルと
+    そのバッファを消す。複数選択 (`<Tab>`) していればまとめて消す。
 
 :Note grep [pattern]                                              *:Note-grep*
     全ノートを Vim の正規表現で検索し、結果を quickfix に出す。
