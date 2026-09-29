@@ -43,11 +43,6 @@ test("link parse", function()
   eq({ p("foo#bar|baz") }, { "foo", "bar" })
 end)
 
-test("tags", function()
-  local x = require("notemode.search").extract_tags
-  eq(x("#todo と #日本語、それと a#b #123 (#x)"), { { 1, "todo" }, { 11, "日本語" }, { 44, "x" } })
-end)
-
 test(":Note enters note mode on blank tab", function()
   vim.cmd("Note")
   eq(#vim.api.nvim_list_tabpages(), 1)
@@ -110,21 +105,6 @@ test("resolve is case-insensitive and finds subdirs", function()
   eq(notes.resolve("project plan"), vim.fs.normalize(dir) .. "/Project Plan.md")
   eq(notes.resolve("Deep"), vim.fs.normalize(dir) .. "/sub/Deep.md")
   eq(notes.resolve("sub/Deep"), vim.fs.normalize(dir) .. "/sub/Deep.md")
-end)
-
-test("backlinks", function()
-  vim.cmd("edit " .. vim.fn.fnameescape(dir .. "/Project Plan.md"))
-  require("notemode.link").backlinks()
-  local qf = vim.fn.getqflist()
-  eq(#qf, 2)
-  vim.cmd("cclose")
-end)
-
-test("grep and tags", function()
-  require("notemode.search").grep("ship")
-  eq(#vim.fn.getqflist(), 1)
-  eq(require("notemode.search").tag_counts(), { work = 1 })
-  vim.cmd("cclose")
 end)
 
 test("omnifunc", function()

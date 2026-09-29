@@ -7,7 +7,7 @@ local ns = vim.api.nvim_create_namespace("notemode")
 local group = vim.api.nvim_create_augroup("notemode_buffer", { clear = true })
 local attached = {}
 
---- [[link]] と #tag をハイライトする (treesitter と共存できるよう decoration provider で描画)
+--- [[link]] と完了タスクをハイライトする (treesitter と共存できるよう decoration provider で描画)
 vim.api.nvim_set_decoration_provider(ns, {
   on_win = function(_, _, buf)
     return attached[buf] == true
@@ -21,13 +21,6 @@ vim.api.nvim_set_decoration_provider(ns, {
       local name = require("notemode.link").parse(inner)
       local hl = notes.resolve(name) and "NotemodeLink" or "NotemodeLinkMissing"
       vim.api.nvim_buf_set_extmark(buf, ns, row, s - 1, { end_col = e - 1, hl_group = hl, ephemeral = true })
-    end
-    for _, t in ipairs(require("notemode.search").extract_tags(line)) do
-      vim.api.nvim_buf_set_extmark(buf, ns, row, t[1] - 1, {
-        end_col = t[1] + #t[2],
-        hl_group = "NotemodeTag",
-        ephemeral = true,
-      })
     end
     local done = line:match("^%s*[-*+]%s+%[[xX]%]()")
     if done then
@@ -90,11 +83,8 @@ function M.attach(buf)
     require("notemode.task").toggle(math.min(a, b), math.max(a, b))
   end, "toggle tasks")
   map(buf, "i", "complete", "[[<C-x><C-o>", "complete link")
-  map(buf, "n", "backlinks", cmd("backlinks"), "backlinks")
   map(buf, "n", "new", cmd("new"), "new note")
   map(buf, "n", "daily", cmd("daily"), "daily note")
-  map(buf, "n", "grep", cmd("grep"), "grep notes")
-  map(buf, "n", "tags", cmd("tags"), "tags")
   map(buf, "n", "capture", cmd("capture"), "capture to inbox")
 
   vim.api.nvim_clear_autocmds({ group = group, buffer = buf })

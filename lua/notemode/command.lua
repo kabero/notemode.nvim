@@ -48,30 +48,6 @@ M.subcommands = {
       ask("New note: ", create)
     end
   end,
-  grep = function(args)
-    local function run(pat)
-      mode().enter(function()
-        require("notemode.search").grep(pat)
-      end)
-    end
-    if #args > 0 then
-      run(table.concat(args, " "))
-    else
-      ask("Grep notes: ", run)
-    end
-  end,
-  tags = function(args)
-    mode().enter(function()
-      if args[1] then
-        require("notemode.search").tag(args[1])
-      else
-        require("notemode.search").tags()
-      end
-    end)
-  end,
-  backlinks = function()
-    require("notemode.link").backlinks()
-  end,
   capture = function(args)
     if #args > 0 then
       require("notemode.capture").append({ table.concat(args, " ") })
@@ -103,13 +79,6 @@ function M.complete(arglead, cmdline)
     return vim.tbl_filter(function(n)
       return n:find(arglead, 1, true) == 1
     end, names)
-  end
-  if parts[2] == "tags" then
-    local tags = vim.tbl_keys(require("notemode.search").tag_counts())
-    table.sort(tags)
-    return vim.tbl_filter(function(t)
-      return t:find(arglead, 1, true) == 1
-    end, tags)
   end
   return {}
 end

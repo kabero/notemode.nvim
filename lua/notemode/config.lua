@@ -29,11 +29,8 @@ M.defaults = {
     prev_link = "<S-Tab>",
     toggle_task = "<C-Space>",
     complete = "[[",
-    backlinks = "<LocalLeader>b",
     new = "<LocalLeader>n",
     daily = "<LocalLeader>d",
-    grep = "<LocalLeader>g",
-    tags = "<LocalLeader>t",
     capture = "<LocalLeader>c",
   },
 }

@@ -18,7 +18,6 @@ local group = vim.api.nvim_create_augroup("notemode", { clear = true })
 local function set_highlights()
   vim.api.nvim_set_hl(0, "NotemodeLink", { default = true, link = "Underlined" })
   vim.api.nvim_set_hl(0, "NotemodeLinkMissing", { default = true, link = "DiagnosticUnnecessary" })
-  vim.api.nvim_set_hl(0, "NotemodeTag", { default = true, link = "Special" })
   vim.api.nvim_set_hl(0, "NotemodeTaskDone", { default = true, link = "Comment" })
 end
 set_highlights()
