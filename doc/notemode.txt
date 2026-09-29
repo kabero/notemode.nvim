@@ -59,9 +59,6 @@
 :Note new [title]                                                  *:Note-new*
     ノートを新規作成する。[title] を省略すると入力を求める。
 
-:Note find                                                        *:Note-find*
-    ピッカーでノートを探す。ピッカーは `picker` で選ぶ。
-
 :Note grep [pattern]                                              *:Note-grep*
     全ノートを Vim の正規表現で検索し、結果を quickfix に出す。
     [pattern] を省略すると入力を求める。
@@ -128,7 +125,6 @@ URL は |vim.ui.open()| で開く。
     toggle_task   <C-Space>           タスクの切り替え (カウント・ビジュアル可)
     complete      [[                  挿入モードでノート名を補完
     backlinks     <LocalLeader>b      |:Note-backlinks|
-    find          <LocalLeader>f      |:Note-find|
     new           <LocalLeader>n      |:Note-new|
     daily         <LocalLeader>d      |:Note-daily|
     grep          <LocalLeader>g      |:Note-grep|
@@ -149,8 +145,6 @@ URL は |vim.ui.open()| で開く。
       daily_dir = "daily",
       daily_format = "%Y-%m-%d",
       autosave = true,
-      -- "auto" | "telescope" | "fzf-lua" | "select"
-      picker = "auto",
       -- {{title}} {{date}} {{time}} が置換される
       templates = {
         note = "# {{title}}\n\n",

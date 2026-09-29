@@ -48,11 +48,6 @@ M.subcommands = {
       ask("New note: ", create)
     end
   end,
-  find = function()
-    mode().enter(function()
-      require("notemode.picker").find()
-    end)
-  end,
   grep = function(args)
     local function run(pat)
       mode().enter(function()

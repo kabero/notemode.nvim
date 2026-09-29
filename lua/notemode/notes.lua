@@ -87,47 +87,6 @@ function M.add(path)
   remember(config.real(path))
 end
 
---- ノートを確認のうえ削除する。削除したら true
-function M.delete(paths)
-  paths = vim.tbl_map(config.real, paths)
-  local names, refs = {}, 0
-  for _, p in ipairs(paths) do
-    table.insert(names, M.rel(p))
-    refs = refs + #require("notemode.link").backlink_items(p)
-  end
-  local msg = table.concat(names, ", ") .. " を削除しますか？"
-  if refs > 0 then
-    msg = msg .. ("\n(ほかのノートの %d 箇所からリンクされています)"):format(refs)
-  end
-  if vim.fn.confirm(msg, "&Yes\n&No", 2) ~= 1 then
-    return false
-  end
-
-  for _, p in ipairs(paths) do
-    for _, b in ipairs(vim.api.nvim_list_bufs()) do
-      if vim.api.nvim_buf_get_name(b) ~= "" and config.real(vim.api.nvim_buf_get_name(b)) == p then
-        -- 先に表示中のウィンドウを別のバッファに移す (bwipeout でウィンドウやタブが閉じないように)。
-        -- 移る時点で autosave が走るので、ファイルを消すのはバッファを消したあと
-        for _, w in ipairs(vim.fn.win_findbuf(b)) do
-          vim.api.nvim_win_call(w, function()
-            local alt = vim.fn.bufnr("#")
-            if alt > 0 and alt ~= b and vim.fn.buflisted(alt) == 1 then
-              vim.cmd.buffer(alt)
-            else
-              vim.cmd.enew()
-            end
-          end)
-        end
-        vim.api.nvim_buf_delete(b, { force = true })
-      end
-    end
-    vim.fn.delete(p)
-  end
-  M.invalidate()
-  vim.notify("notemode: " .. table.concat(names, ", ") .. " を削除しました", vim.log.levels.INFO)
-  return true
-end
-
 --- リンク名からノートのパスを探す。見つからなければ nil
 function M.resolve(name)
   name = vim.trim(name):gsub("%.md$", "")
