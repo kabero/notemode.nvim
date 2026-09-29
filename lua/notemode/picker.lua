@@ -37,13 +37,20 @@ local backends = {
           end
         end,
       },
-      -- <c-d> は snacks 既定の list_scroll_down を上書きする (このピッカーでだけ)
+      -- <c-d> は snacks 既定の list_scroll_down を上書きする (このピッカーでだけ)。
+      -- 既定と違うキーなので、入力欄の下に常に出しておく
       win = {
-        input = { keys = { ["<c-d>"] = { "notemode_delete", mode = { "n", "i" }, desc = "Delete note" } } },
+        input = {
+          keys = {
+            ["<c-d>"] = { "notemode_delete", mode = { "n", "i" }, desc = "削除" },
+            ["<Tab>"] = { "select_and_next", mode = { "n", "i" }, desc = "複数選択" },
+          },
+          footer_keys = { "<c-d>", "<Tab>" },
+        },
         list = {
           keys = {
-            ["<c-d>"] = { "notemode_delete", desc = "Delete note" },
-            ["dd"] = { "notemode_delete", desc = "Delete note" },
+            ["<c-d>"] = { "notemode_delete", desc = "削除" },
+            ["dd"] = { "notemode_delete", desc = "削除" },
           },
         },
       },
