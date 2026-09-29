@@ -23,41 +23,14 @@ local backends = {
   ["fzf-lua"] = function(dir)
     require("fzf-lua").files({ cwd = dir, prompt = "Notes> " })
   end,
-  snacks = function(dir)
-    require("snacks").picker.files({
-      cwd = dir,
-      title = "Notes",
-      ft = "md",
-      actions = {
-        notemode_delete = function(picker)
-          local paths = vim.tbl_map(require("snacks").picker.util.path, picker:selected({ fallback = true }))
-          picker.preview:reset()
-          if notes.delete(paths) then
-            picker:find()
-          end
-        end,
-      },
-      -- snacks の削除系アクション (bufdelete など) と同じキー。入力欄の下に常に出しておく
-      win = {
-        input = {
-          keys = {
-            ["<c-x>"] = { "notemode_delete", mode = { "n", "i" }, desc = "削除" },
-            ["<Tab>"] = { "select_and_next", mode = { "n", "i" }, desc = "複数選択" },
-          },
-          footer_keys = { "<c-x>", "<Tab>" },
-        },
-        list = { keys = { ["dd"] = { "notemode_delete", desc = "削除" } } },
-      },
-    })
-  end,
 }
 
-local modules = { telescope = "telescope.builtin", ["fzf-lua"] = "fzf-lua", snacks = "snacks" }
+local modules = { telescope = "telescope.builtin", ["fzf-lua"] = "fzf-lua" }
 
 function M.find()
   local choice = config.options.picker
   if choice == "auto" then
-    for _, name in ipairs({ "snacks", "telescope", "fzf-lua" }) do
+    for _, name in ipairs({ "telescope", "fzf-lua" }) do
       if pcall(require, modules[name]) then
         choice = name
         break

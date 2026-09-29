@@ -11,7 +11,7 @@ M.defaults = {
   daily_format = "%Y-%m-%d",
   -- 編集するたびに自動保存する
   autosave = true,
-  -- :Note find で使うピッカー: "auto" | "telescope" | "fzf-lua" | "snacks" | "select"
+  -- :Note find で使うピッカー: "auto" | "telescope" | "fzf-lua" | "select"
   picker = "auto",
   -- テンプレート中の {{title}} {{date}} {{time}} が置換される
   templates = {
