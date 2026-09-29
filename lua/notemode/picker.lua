@@ -37,10 +37,15 @@ local backends = {
           end
         end,
       },
-      -- snacks の削除系アクション (bufdelete など) と同じキー
+      -- <c-d> は snacks 既定の list_scroll_down を上書きする (このピッカーでだけ)
       win = {
-        input = { keys = { ["<c-x>"] = { "notemode_delete", mode = { "n", "i" }, desc = "Delete note" } } },
-        list = { keys = { ["dd"] = { "notemode_delete", desc = "Delete note" } } },
+        input = { keys = { ["<c-d>"] = { "notemode_delete", mode = { "n", "i" }, desc = "Delete note" } } },
+        list = {
+          keys = {
+            ["<c-d>"] = { "notemode_delete", desc = "Delete note" },
+            ["dd"] = { "notemode_delete", desc = "Delete note" },
+          },
+        },
       },
     })
   end,
